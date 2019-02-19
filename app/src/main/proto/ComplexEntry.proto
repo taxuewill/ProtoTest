@@ -1,0 +1,16 @@
+syntax = "proto2";
+
+package entry;
+
+option java_package="com.segway.prototest.entry";
+option java_outer_classname="ComplexEntryProto";
+option optimize_for = SPEED;
+message ComplexEntry{
+    required string strObj = 1 [default="hello"];
+    optional int32 int32Obj = 2;
+    optional int64 int64Obj = 3;
+    optional float floatObj = 4;
+    optional double doubleObj = 5;
+    optional bool   boolObj = 6;
+    optional bytes  bytesObj = 7;
+}

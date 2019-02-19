@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package entry;
+
+option java_package = "com.segway.prototest.entry";
+option java_outer_classname ="ProtoTestInts";
+
+message IntsEntry{
+    required int32 val1 = 1;
+    required int32 val2 = 2;
+    required int32 val3 = 3;
+    required int32 val4 = 4;
+    required int32 val5 = 5;
+    required int32 val6 = 6;
+    required int32 val7 = 7;
+    required int32 val8 = 8;
+    required int32 val9 = 9;
+    required int32 val10 = 10;
+}
