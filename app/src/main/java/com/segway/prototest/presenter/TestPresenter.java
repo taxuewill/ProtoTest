@@ -6,8 +6,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.segway.prototest.XJni;
 import com.segway.prototest.entry.ComplexEntry;
 import com.segway.prototest.entry.ComplexEntryProto;
 import com.segway.prototest.entry.NestedEntry;
@@ -25,14 +25,7 @@ import com.segway.prototest.util.CachedExecutorService;
 import com.segway.prototest.util.TestUtils;
 import com.segway.prototest.view.IProtoContact;
 
-import junit.framework.Test;
-
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * Created by will on 19-2-18.
@@ -68,6 +61,9 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+//        String jniString = XJni.getStr();
+//        Log.i(TAG,"jniString is "+jniString);
     }
 
     @Override
@@ -77,15 +73,42 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
     @Override
     public void writeReadProto() {
+        testInt();
+        testComplex();
+        testNested();
+    }
+
+    @Override
+    public void nativeWriteProto() {
         CachedExecutorService.getInstance().execute(new Runnable() {
             @Override
             public void run() {
-                testInt();
-                testComplex();
-                testNested();
+                nativeWritePerson();
             }
         });
+    }
 
+    @Override
+    public void nativeReadProto() {
+        CachedExecutorService.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                nativeReadPerson();
+            }
+        });
+    }
+
+    @Override
+    public void nativeWriteReadProto() {
+        CachedExecutorService.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                nativeWritePerson();
+                nativeReadPerson();
+                nativeWriteNested();
+                nativeReadNested();
+            }
+        });
     }
 
 
@@ -239,5 +262,136 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         TestResult serializeTest = TestUtils.testTemplate(new ObjectTest(),nestedEntry1,1000);
         printResult(serializeTest);
 
+    }
+
+
+    private void nativeWritePerson(){
+        PersonProto.Person person = PersonProto.Person.newBuilder()
+                .setName("Java")
+                .setId(10)
+                .setEmail("Hello,world!")
+                .build();
+        byte[] protoPerson = person.toByteArray();
+        long start = System.nanoTime();
+        for(int i= 0; i< 1000;i++){
+
+            int index = XJni.writeProto(protoPerson,i);
+            //Log.i(TAG,"nativeWriteProto index "+index);
+        }
+        long scope = System.nanoTime() - start;
+        Log.i(TAG,"native WriteProto cost "+(scope/1000000d));
+        Person person1 = new Person();
+        person1.setName("Java");
+        person1.setId(10);
+        person1.setEmail("Hello,world!");
+        start = System.nanoTime();
+        for( int j = 0;j < 1000;j++){
+
+            int index = XJni.writePerson(person1,j);
+            //Log.i(TAG,"j is "+j+",index is "+index);
+        }
+        scope = System.nanoTime() - start;
+        Log.i(TAG,"native WritePerson cost "+(scope/1000000d));
+
+    }
+
+    private void nativeReadPerson(){
+
+
+
+        long start = System.nanoTime();
+        for(int i = 0; i< 1000;i++){
+            byte[] barray = XJni.readProto(i);
+            try {
+                PersonProto.Person person = PersonProto.Person.parseFrom(barray);
+                //Log.i(TAG,"person name "+person.getName()+","+person.getEmail()+","+person.getId());
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        long scope = System.nanoTime() - start;
+        Log.i(TAG,"native readProto cost:"+(scope/1000000d));
+
+        start = System.nanoTime();
+
+        for(int i = 0;i < 1000;i++){
+            Person person = XJni.readPerson(i);
+            //Log.i(TAG,"person name is "+person.getName()+",id:"+person.getId());
+        }
+        scope = System.nanoTime() - start;
+        Log.i(TAG,"native readPerson cost:"+(scope/1000000d));
+
+
+    }
+
+
+    private void nativeWriteNested(){
+
+        PersonProto.Person person = PersonProto.Person.newBuilder()
+                .setName("Tome")
+                .setId(1)
+                .setEmail("email")
+                .build();
+        NestedEntryProto.NestedEntry nestedEntry = NestedEntryProto.NestedEntry.newBuilder()
+                .setStrObj("Hello")
+                .setInt32Obj(1)
+                .setInt64Obj(1L)
+                .setFloatObj(1F)
+                .setDoubleObj(1D)
+                .setBoolObj(true)
+                .setBytesObj(ByteString.copyFrom(new byte[]{1,2,3}))
+                .setPerson(person)
+                .build();
+
+
+        long start = System.nanoTime();
+        for(int i = 0;i < 1000; i++) {
+            int index = XJni.writeNestedProto(nestedEntry.toByteArray(), 0);
+        }
+        long scope = System.nanoTime() - start;
+        Log.i(TAG,"nativeWriteNestedProto cost "+(scope/1000000d));
+        NestedEntry nestedEntry1 = new NestedEntry();
+        Person person1 = new Person();
+        person1.setName("Tome");
+        person1.setId(1);
+        person1.setEmail("email");
+        nestedEntry1.setStrObj("Hello");
+        nestedEntry1.setInt32Obj(1);
+        nestedEntry1.setInt64Obj(1L);
+        nestedEntry1.setFloatObj(1F);
+        nestedEntry1.setDoubleObj(1D);
+        nestedEntry1.setBoolObj(true);
+        nestedEntry1.setBytesObj(new byte[]{1,2,3});
+        nestedEntry1.setPerson(person1);
+        start = System.nanoTime();
+        for(int i = 0; i< 1000;i++){
+            int index = XJni.writeNestedEntry(nestedEntry1,i);
+        }
+        scope = System.nanoTime() - start;
+        Log.i(TAG,"nativeWriteNestedPerson cost: "+(scope/1000000d));
+
+    }
+
+
+    private void nativeReadNested(){
+        long start = System.nanoTime();
+        for(int i = 0; i< 1000;i++){
+            byte[] barray = XJni.readNestedProto(i);
+            try {
+                NestedEntryProto.NestedEntry nestedEntry = NestedEntryProto.NestedEntry.parseFrom(barray);
+//                Log.i(TAG,"nestedEntry "+nestedEntry.getPerson().getName());
+            } catch (InvalidProtocolBufferException e) {
+                e.printStackTrace();
+            }
+        }
+        long scope = System.nanoTime() - start;
+        Log.i(TAG,"nativeReadNestedProto cost "+(scope/1000000d));
+        start = System.nanoTime();
+        for(int i = 0;i<1000;i++){
+            NestedEntry nestedEntry = XJni.readNestedEntry(0);
+        }
+        scope = System.nanoTime() - start;
+
+        Log.i(TAG,"nativeReadNestedEntry cost "+(scope/1000000d));
     }
 }

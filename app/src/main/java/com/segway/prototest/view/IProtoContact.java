@@ -10,6 +10,11 @@ public interface IProtoContact {
         void writeProto();
         void readProto();
         void writeReadProto();
+
+        //below is native test
+        void nativeWriteProto();
+        void nativeReadProto();
+        void nativeWriteReadProto();
     }
 
     interface IProtoView{

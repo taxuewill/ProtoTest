@@ -13,6 +13,7 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
 
     private static final String TAG = "ProtoMain";
     private Button mBtnReadProto,mBtnWriteProto,mBtnWriteReadProto;
+    private Button mBtnNativeReadProto,mBtnNativeWriteProto,mBtnNativeWriteReadProto;
     private TextView mTvTime;
     private IProtoContact.IProtoPresenter mPresenter;
 
@@ -28,11 +29,19 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
         mBtnWriteProto = findViewById(R.id.btn_write_proto);
         mBtnWriteReadProto = findViewById(R.id.btn_write_read_proto);
 
+        mBtnNativeReadProto = findViewById(R.id.btn_native_read_proto);
+        mBtnNativeWriteProto = findViewById(R.id.btn_native_write_proto);
+        mBtnNativeWriteReadProto = findViewById(R.id.btn_native_write_read_proto);
+
         mTvTime = findViewById(R.id.tv_time);
 
         mBtnWriteProto.setOnClickListener(this);
         mBtnReadProto.setOnClickListener(this);
         mBtnWriteReadProto.setOnClickListener(this);
+
+        mBtnNativeReadProto.setOnClickListener(this);
+        mBtnNativeWriteProto.setOnClickListener(this);
+        mBtnNativeWriteReadProto.setOnClickListener(this);
 
         mPresenter = new TestPresenter(this);
     }
@@ -48,6 +57,15 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
                 break;
             case R.id.btn_write_read_proto:
                 mPresenter.writeReadProto();
+                break;
+            case R.id.btn_native_read_proto:
+                mPresenter.nativeReadProto();
+                break;
+            case R.id.btn_native_write_proto:
+                mPresenter.nativeWriteProto();
+                break;
+            case R.id.btn_native_write_read_proto:
+                mPresenter.nativeWriteReadProto();
                 break;
         }
     }
