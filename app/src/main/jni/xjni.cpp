@@ -212,6 +212,6 @@ jint JNI_OnLoad(JavaVM* vm,void* reserved)
     LOGD("JNI_OnLoad");
     JNIEnv * env = NULL;
     vm->GetEnv((void **)&env,JNI_VERSION_1_6);
-    env->RegisterNatives(env->FindClass(kClassPathName),gMethods, 9);
+    env->RegisterNatives(env->FindClass(kClassPathName),gMethods, sizeof(gMethods)/sizeof(JNINativeMethod));
     return JNI_VERSION_1_6;
 }

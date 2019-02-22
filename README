@@ -1,0 +1,41 @@
+
+进程内：
+1.1java层 测试 1000 次
+对像只有单个int值
+ProtoBuf		read:	2.87442 ms, 	write:	0.952719 ms		write size:	2KB
+Jackson  		read:	17.427414 ms, 	write:	16.348966 ms	write size:	10KB
+Serializable	read:	46.153278 ms, 	write:	13.013994 ms	write size:	73KB
+
+1.2对像包含 int,long,float,double,boolean,String
+ProtoBuf		read:	3.290959 ms, 	write:	2.281151 ms		write size:	32KB
+Jackson  		read:	58.104573 ms, 	write:	34.16338 ms	    write size:	108KB
+Serializable	read:	128.622018 ms, 	write:	40.366336 ms	write size:	220KB
+
+1.3一层嵌套，外层对像包含 int,long,float,double,boolean,String，内存对像包含int,String
+ProtoBuf		read:	5.831555 ms, 	write:	3.68316 ms		write size:	48KB
+Jackson  		read:	73.320226 ms, 	write:	41.729444 ms	write size:	156KB
+Serializable	read:	236.330708 ms, 	write:	63.194191 ms	write size:	365KB
+
+结论：从读写速度和内存占用上，proto性能最好
+
+2.1java与native,测试 1000 次
+对像包含 int,long,float,double,boolean,String
+ProtoBuf	write: 16.376842 ms,	read: 14.140693 ms
+JNI 		write: 19.412417 ms,	read: 16.24345 ms
+2.2一层嵌套，外层对像包含 int,long,float,double,boolean,String，内存对像包含int,String
+ProtoBuf	write: 26.532353 ms,	read: 24.229639 ms
+JNI 		write: 14.83729 ms,		read: 47.824207 ms
+
+结论：传输一般对像时，protobuf和jni效率相差不多，两层对像时，向native传入对像时，jni更快一些，从native向java层传对像时，protobuf更快一些
+
+
+进程间
+android binder 与protobuf,测试 1000 次
+1单层对像包含 int,long,float,double,boolean,String
+binder	cost:	331.873467 ms
+Proto	cost:	352.508076 ms
+2两层对像，都包含 int,long,float,double,boolean,String
+binder	cost:	459.356001 ms
+binder	cost:	550.790011 ms
+
+结论：进程间传输时，单层对像,两层对像,binder和protobuf相差不大,可以认为binder更快

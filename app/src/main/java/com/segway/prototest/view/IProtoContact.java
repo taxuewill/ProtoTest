@@ -15,6 +15,9 @@ public interface IProtoContact {
         void nativeWriteProto();
         void nativeReadProto();
         void nativeWriteReadProto();
+
+
+        void sendBindData();
     }
 
     interface IProtoView{

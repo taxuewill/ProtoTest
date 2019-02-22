@@ -14,6 +14,7 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
     private static final String TAG = "ProtoMain";
     private Button mBtnReadProto,mBtnWriteProto,mBtnWriteReadProto;
     private Button mBtnNativeReadProto,mBtnNativeWriteProto,mBtnNativeWriteReadProto;
+    private Button mBtnBinderSend;
     private TextView mTvTime;
     private IProtoContact.IProtoPresenter mPresenter;
 
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
         mBtnReadProto = findViewById(R.id.btn_read_proto);
         mBtnWriteProto = findViewById(R.id.btn_write_proto);
         mBtnWriteReadProto = findViewById(R.id.btn_write_read_proto);
+        mBtnBinderSend = findViewById(R.id.btn_binder_send);
 
         mBtnNativeReadProto = findViewById(R.id.btn_native_read_proto);
         mBtnNativeWriteProto = findViewById(R.id.btn_native_write_proto);
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
         mBtnNativeReadProto.setOnClickListener(this);
         mBtnNativeWriteProto.setOnClickListener(this);
         mBtnNativeWriteReadProto.setOnClickListener(this);
+        mBtnBinderSend.setOnClickListener(this);
 
         mPresenter = new TestPresenter(this);
     }
@@ -66,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements  IProtoContact.IP
                 break;
             case R.id.btn_native_write_read_proto:
                 mPresenter.nativeWriteReadProto();
+                break;
+            case R.id.btn_binder_send:
+                mPresenter.sendBindData();
                 break;
         }
     }

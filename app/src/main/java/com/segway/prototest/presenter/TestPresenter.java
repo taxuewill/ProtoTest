@@ -1,5 +1,7 @@
 package com.segway.prototest.presenter;
 
+import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -7,6 +9,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.segway.common.control.ISendData;
+import com.segway.common.entry.Rom;
+import com.segway.common.entry.Student;
+import com.segway.prototest.ProtoApplication;
 import com.segway.prototest.XJni;
 import com.segway.prototest.entry.ComplexEntry;
 import com.segway.prototest.entry.ComplexEntryProto;
@@ -15,7 +21,9 @@ import com.segway.prototest.entry.NestedEntryProto;
 import com.segway.prototest.entry.Person;
 import com.segway.prototest.entry.PersonProto;
 import com.segway.prototest.entry.ProtoTestInt;
+import com.segway.prototest.entry.RomProto;
 import com.segway.prototest.entry.SimpleIntEntry;
+import com.segway.prototest.entry.StudentProto;
 import com.segway.prototest.test.ITestCallback;
 import com.segway.prototest.test.JacksonTest;
 import com.segway.prototest.test.ObjectTest;
@@ -107,6 +115,16 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
                 nativeReadPerson();
                 nativeWriteNested();
                 nativeReadNested();
+            }
+        });
+    }
+
+    @Override
+    public void sendBindData(){
+        CachedExecutorService.getInstance().execute(new Runnable() {
+            @Override
+            public void run() {
+                sendDataToServer();
             }
         });
     }
@@ -291,7 +309,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
             //Log.i(TAG,"j is "+j+",index is "+index);
         }
         scope = System.nanoTime() - start;
-        Log.i(TAG,"native WritePerson cost "+(scope/1000000d));
+        Log.i(TAG,"native WriteObject cost "+(scope/1000000d));
 
     }
 
@@ -319,7 +337,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
             //Log.i(TAG,"person name is "+person.getName()+",id:"+person.getId());
         }
         scope = System.nanoTime() - start;
-        Log.i(TAG,"native readPerson cost:"+(scope/1000000d));
+        Log.i(TAG,"native readObject cost:"+(scope/1000000d));
 
 
     }
@@ -393,5 +411,89 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         scope = System.nanoTime() - start;
 
         Log.i(TAG,"nativeReadNestedEntry cost "+(scope/1000000d));
+    }
+
+
+    private void sendDataToServer(){
+        Student student = new Student();
+        student.setName("Will");
+        student.setId(1);
+        student.setValBoolean(true);
+        student.setValFloat(1.0f);
+        student.setValDouble(1.0d);
+        student.setValLong(1L);
+        ISendData iSendData = ProtoApplication.getInstance().getBinder();
+        long start = System.nanoTime();
+        for(int i = 0;i < 1000;i++){
+            try {
+                student.setId(i);
+                iSendData.sendStudent(student);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
+        long scope = System.nanoTime() - start;
+        Log.i(TAG,"Student binder cost:"+(scope/1000000d));
+        StudentProto.StudentP studentP = StudentProto.StudentP.newBuilder()
+                .setName("Will")
+                .setId(1)
+                .setValBool(true)
+                .setValLong(1L)
+                .setValFloat(1.0f)
+                .setValDouble(1.0d)
+                .build();
+        start = System.nanoTime();
+        for(int i = 0;i<1000;i++) {
+            try {
+                iSendData.sendStudentP(studentP.toByteArray());
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        scope = System.nanoTime() -start;
+        Log.i(TAG,"Student Proto cost:"+(scope/1000000d));
+
+        Rom rom = new Rom();
+        rom.setStudent(student);
+        rom.setId(1);
+        rom.setName("Class1");
+        rom.setValBoolean(true);
+        rom.setValDouble(1d);
+        rom.setValFloat(1f);
+        rom.setValLong(1L);
+        start = System.nanoTime();
+        for(int i = 0;i<10000;i++){
+            try {
+                rom.setId(i);
+                iSendData.sendRom(rom);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        scope = System.nanoTime() -start;
+        Log.i(TAG,"Rom binder cost "+(scope/1000000d));
+
+        RomProto.RomP romP = RomProto.RomP.newBuilder()
+                .setId(1)
+                .setName("Class1")
+                .setValBool(true)
+                .setValDouble(1d)
+                .setValFloat(1f)
+                .setValLong(1l)
+                .setStudent(studentP)
+                .build();
+        start = System.nanoTime();
+        for(int i = 0;i<10000;i++){
+            try {
+                iSendData.sendRomP(romP.toByteArray());
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+        scope = System.nanoTime() - start;
+        Log.i(TAG,"RomP Proto cost "+(scope/1000000d));
+
+
     }
 }

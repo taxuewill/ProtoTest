@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+import "Student.proto";
+
+
+package entry;
+
+option java_package = "com.segway.prototest.entry";
+option java_outer_classname ="RomProto";
+
+message RomP{
+    required string name = 1;
+    required int32 id = 2;
+    optional int64 valLong= 3;
+    optional float valFloat = 4;
+    optional double valDouble = 5;
+    optional bool valBool = 6;
+    optional StudentP student = 7;
+}

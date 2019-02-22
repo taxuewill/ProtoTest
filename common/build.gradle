@@ -1,32 +1,28 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 apply plugin: 'com.google.protobuf'
 
 android {
     compileSdkVersion 26
+
+
+
     defaultConfig {
-        applicationId "com.segway.prototest"
         minSdkVersion 22
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
+
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        externalNativeBuild{
-            cmake{
-                cppFlags ""
-                arguments "-DANDROID_NATIVE_API_LEVEL=android-22",
-                          "-DANDROID_TOOLCHAIN_NAME=clang",
-                          "-DANDROID_STL=c++_static"
-                abiFilters 'x86_64'
-            }
-        }
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     sourceSets{
         main{
             // 定义proto文件目录
@@ -34,32 +30,21 @@ android {
                 srcDir 'src/main/proto'
                 include '**/*.proto'
             }
-            jniLibs.srcDirs = ['libs']
 
         }
     }
-    packagingOptions {
-        exclude 'META-INF/NOTICE' // will not include NOTICE file
-        exclude 'META-INF/LICENSE' // will not include LICENSE file
-    }
-    externalNativeBuild {
-        cmake {
-            path 'CMakeLists.txt'
-        }
-    }
+
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
     implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    api 'com.fasterxml.jackson.core:jackson-databind:2.9.0'
-    api 'com.fasterxml.jackson.core:jackson-core:2.9.0'
-    api 'com.fasterxml.jackson.core:jackson-databind:2.9.0'
-    compile project(':common')
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-
-
+    api 'com.google.protobuf:protobuf-java:3.6.1'
 }
 
 protobuf{
