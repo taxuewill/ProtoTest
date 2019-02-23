@@ -20,11 +20,11 @@ Serializable	read:	236.330708 ms, 	write:	63.194191 ms	write size:	365KB
 
 2.1java与native,测试 1000 次
 对像包含 int,long,float,double,boolean,String
-ProtoBuf	write: 16.376842 ms,	read: 14.140693 ms
-JNI 		write: 19.412417 ms,	read: 16.24345 ms
+ProtoBuf	write: 16.376842 ms,    cpu:约20%	read: 14.140693 ms  cpu:约27%    单个byte[] size: 22 byte
+JNI 		write: 19.412417 ms,    cpu:约17%	read: 16.24345 ms   cpu:约25%    单个object size: 32 byte
 2.2一层嵌套，外层对像包含 int,long,float,double,boolean,String，内存对像包含int,String
-ProtoBuf	write: 26.532353 ms,	read: 24.229639 ms
-JNI 		write: 14.83729 ms,		read: 47.824207 ms
+ProtoBuf	write: 26.532353 ms,    cpu:约20%    read: 24.229639 ms  cpu:约25%    单个byte[] size: 49 byte
+JNI 		write: 14.83729 ms,		cpu:约20%    read: 47.824207 ms  cpu:约25%    单个object size: 48+32 byte
 
 结论：传输一般对像时，protobuf和jni效率相差不多，两层对像时，向native传入对像时，jni更快一些，从native向java层传对像时，protobuf更快一些
 
@@ -32,10 +32,11 @@ JNI 		write: 14.83729 ms,		read: 47.824207 ms
 进程间
 android binder 与protobuf,测试 1000 次
 1单层对像包含 int,long,float,double,boolean,String
-binder	cost:	331.873467 ms
-Proto	cost:	352.508076 ms
+
+Parcel	cost:	331.873467 ms   cpu:约6%     单个object size: 48 byte
+Proto	cost:	352.508076 ms   cpu:约6%     单个byte[] size: 26 byte
 2两层对像，都包含 int,long,float,double,boolean,String
-binder	cost:	459.356001 ms
-binder	cost:	550.790011 ms
+Parcel	cost:	459.356001 ms   cpu:约6%     单个object size: 48+48 byte
+Proto	cost:	550.790011 ms   cpu:约6%     单个byte[] size: 56 byte
 
 结论：进程间传输时，单层对像,两层对像,binder和protobuf相差不大,可以认为binder更快

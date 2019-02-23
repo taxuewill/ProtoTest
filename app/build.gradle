@@ -57,6 +57,9 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-core:2.9.0'
     api 'com.fasterxml.jackson.core:jackson-databind:2.9.0'
     compile project(':common')
+    // https://mvnrepository.com/artifact/org.apache.lucene/lucene-core
+    compile group: 'org.apache.lucene', name: 'lucene-core', version: '4.0.0'
+
 
 
 

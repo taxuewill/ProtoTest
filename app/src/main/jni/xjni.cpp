@@ -41,6 +41,7 @@ JNIEXPORT jint JNICALL writeProto_native(JNIEnv* env,jclass,jbyteArray protoData
     memcpy(chars, bytes, chars_length);
     person.ParseFromArray(chars,chars_length);
     LOGD("writeProto_native name:%s,id:%d,email:%s",person.name().c_str(),person.id(),person.email().c_str());
+    env->ReleaseByteArrayElements(protoData,bytes,0);
     return index;
 }
 
@@ -55,7 +56,10 @@ JNIEXPORT jint JNICALL writePerson_native(JNIEnv* env,jclass javaClass,jobject p
     jmethodID getId = env->GetMethodID(jcls,"getId","()I");
     jint jId = env->CallIntMethod(person,getId);
 
+
     LOGD("writePerson_native name:%s,id:%d,email:%s",name,jId,email);
+    env->ReleaseStringUTFChars(jemail,email);
+    env->ReleaseStringUTFChars(jname,name);
     return index;
 }
 

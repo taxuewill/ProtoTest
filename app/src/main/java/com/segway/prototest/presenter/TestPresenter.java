@@ -1,6 +1,5 @@
 package com.segway.prototest.presenter;
 
-import android.hardware.camera2.CameraConstrainedHighSpeedCaptureSession;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -33,6 +32,9 @@ import com.segway.prototest.util.CachedExecutorService;
 import com.segway.prototest.util.TestUtils;
 import com.segway.prototest.view.IProtoContact;
 
+
+import org.apache.lucene.util.RamUsageEstimator;
+
 import java.io.IOException;
 
 /**
@@ -42,6 +44,8 @@ import java.io.IOException;
 public class TestPresenter implements IProtoContact.IProtoPresenter {
 
     private static final String TAG = TestPresenter.class.getSimpleName();
+
+    private static final int TEST_TIMES = 90000;
 
     private IProtoContact.IProtoView mProtoView;
     final ObjectMapper objectMapper = new ObjectMapper();
@@ -76,7 +80,40 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
     @Override
     public void readProto() {
+        Log.i(TAG,"readProto");
+        NestedEntry nestedEntry1 = new NestedEntry();
+        Person person1 = new Person();
+        person1.setName("Tome");
+        person1.setId(1);
+        person1.setEmail("email");
+        nestedEntry1.setStrObj("Hello");
+        nestedEntry1.setInt32Obj(1);
+        nestedEntry1.setInt64Obj(1L);
+        nestedEntry1.setFloatObj(1F);
+        nestedEntry1.setDoubleObj(1D);
+        nestedEntry1.setBoolObj(true);
+        nestedEntry1.setBytesObj(new byte[]{1,2,3});
+        nestedEntry1.setPerson(person1);
+        Log.i(TAG,"person1 size is "+RamUsageEstimator.shallowSizeOf(person1));
+        Log.i(TAG,"nestedEntry1 size is "+RamUsageEstimator.shallowSizeOf(nestedEntry1));
 
+        Student student = new Student();
+        student.setName("Will");
+        student.setId(1);
+        student.setValBoolean(true);
+        student.setValFloat(1.0f);
+        student.setValDouble(1.0d);
+        student.setValLong(1L);
+        Rom rom = new Rom();
+        rom.setStudent(student);
+        rom.setId(1);
+        rom.setName("Class1");
+        rom.setValBoolean(true);
+        rom.setValDouble(1d);
+        rom.setValFloat(1f);
+        rom.setValLong(1L);
+        Log.i(TAG,"Student size is "+RamUsageEstimator.shallowSizeOf(student));
+        Log.i(TAG,"Rom size is "+RamUsageEstimator.shallowSizeOf(rom));
     }
 
     @Override
@@ -111,10 +148,10 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         CachedExecutorService.getInstance().execute(new Runnable() {
             @Override
             public void run() {
-                nativeWritePerson();
-                nativeReadPerson();
+//                nativeWritePerson();
+//                nativeReadPerson();
                 nativeWriteNested();
-                nativeReadNested();
+//                nativeReadNested();
             }
         });
     }
@@ -290,8 +327,9 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
                 .setEmail("Hello,world!")
                 .build();
         byte[] protoPerson = person.toByteArray();
+        Log.i(TAG,"protoPerson length is "+protoPerson.length);
         long start = System.nanoTime();
-        for(int i= 0; i< 1000;i++){
+        for(int i= 0; i< TEST_TIMES;i++){
 
             int index = XJni.writeProto(protoPerson,i);
             //Log.i(TAG,"nativeWriteProto index "+index);
@@ -302,8 +340,9 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         person1.setName("Java");
         person1.setId(10);
         person1.setEmail("Hello,world!");
+
         start = System.nanoTime();
-        for( int j = 0;j < 1000;j++){
+        for( int j = 0;j < TEST_TIMES;j++){
 
             int index = XJni.writePerson(person1,j);
             //Log.i(TAG,"j is "+j+",index is "+index);
@@ -318,7 +357,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
 
         long start = System.nanoTime();
-        for(int i = 0; i< 1000;i++){
+        for(int i = 0; i< TEST_TIMES;i++){
             byte[] barray = XJni.readProto(i);
             try {
                 PersonProto.Person person = PersonProto.Person.parseFrom(barray);
@@ -332,7 +371,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
         start = System.nanoTime();
 
-        for(int i = 0;i < 1000;i++){
+        for(int i = 0;i < TEST_TIMES;i++){
             Person person = XJni.readPerson(i);
             //Log.i(TAG,"person name is "+person.getName()+",id:"+person.getId());
         }
@@ -363,8 +402,10 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
 
         long start = System.nanoTime();
-        for(int i = 0;i < 1000; i++) {
-            int index = XJni.writeNestedProto(nestedEntry.toByteArray(), 0);
+        byte[] protoData = nestedEntry.toByteArray();
+        Log.i(TAG,"protoData length "+protoData.length);
+        for(int i = 0;i < TEST_TIMES; i++) {
+            int index = XJni.writeNestedProto(protoData, 0);
         }
         long scope = System.nanoTime() - start;
         Log.i(TAG,"nativeWriteNestedProto cost "+(scope/1000000d));
@@ -382,7 +423,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         nestedEntry1.setBytesObj(new byte[]{1,2,3});
         nestedEntry1.setPerson(person1);
         start = System.nanoTime();
-        for(int i = 0; i< 1000;i++){
+        for(int i = 0; i< TEST_TIMES;i++){
             int index = XJni.writeNestedEntry(nestedEntry1,i);
         }
         scope = System.nanoTime() - start;
@@ -393,7 +434,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
 
     private void nativeReadNested(){
         long start = System.nanoTime();
-        for(int i = 0; i< 1000;i++){
+        for(int i = 0; i< TEST_TIMES;i++){
             byte[] barray = XJni.readNestedProto(i);
             try {
                 NestedEntryProto.NestedEntry nestedEntry = NestedEntryProto.NestedEntry.parseFrom(barray);
@@ -405,7 +446,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         long scope = System.nanoTime() - start;
         Log.i(TAG,"nativeReadNestedProto cost "+(scope/1000000d));
         start = System.nanoTime();
-        for(int i = 0;i<1000;i++){
+        for(int i = 0;i<TEST_TIMES;i++){
             NestedEntry nestedEntry = XJni.readNestedEntry(0);
         }
         scope = System.nanoTime() - start;
@@ -424,15 +465,15 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         student.setValLong(1L);
         ISendData iSendData = ProtoApplication.getInstance().getBinder();
         long start = System.nanoTime();
-        for(int i = 0;i < 1000;i++){
-            try {
-                student.setId(i);
-                iSendData.sendStudent(student);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
+//        for(int i = 0;i < TEST_TIMES;i++){
+//            try {
+//                student.setId(i);
+//                iSendData.sendStudent(student);
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//
         long scope = System.nanoTime() - start;
         Log.i(TAG,"Student binder cost:"+(scope/1000000d));
         StudentProto.StudentP studentP = StudentProto.StudentP.newBuilder()
@@ -443,8 +484,9 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
                 .setValFloat(1.0f)
                 .setValDouble(1.0d)
                 .build();
+        Log.i(TAG,"protoStudent size "+studentP.toByteArray().length);
         start = System.nanoTime();
-        for(int i = 0;i<1000;i++) {
+        for(int i = 0;i<TEST_TIMES;i++) {
             try {
                 iSendData.sendStudentP(studentP.toByteArray());
             } catch (RemoteException e) {
@@ -463,7 +505,7 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
         rom.setValFloat(1f);
         rom.setValLong(1L);
         start = System.nanoTime();
-        for(int i = 0;i<10000;i++){
+        for(int i = 0;i<TEST_TIMES;i++){
             try {
                 rom.setId(i);
                 iSendData.sendRom(rom);
@@ -483,8 +525,9 @@ public class TestPresenter implements IProtoContact.IProtoPresenter {
                 .setValLong(1l)
                 .setStudent(studentP)
                 .build();
+        Log.i(TAG,"RomP lenght is "+romP.toByteArray().length);
         start = System.nanoTime();
-        for(int i = 0;i<10000;i++){
+        for(int i = 0;i<TEST_TIMES;i++){
             try {
                 iSendData.sendRomP(romP.toByteArray());
             } catch (RemoteException e) {
